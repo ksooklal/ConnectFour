@@ -2,12 +2,10 @@ import java.util.GregorianCalendar;
 
 public class ConnectFourGameDriver {
     /**
-     * Set debugBot1 = TRUE to debug whenever debugBot1 loses.
-     * Set debugBot2 = TRUE to debug whenever debugBot2 loses.
+     * Set debugKrisBot = TRUE to debug whenever KrisBot loses.
      * Set debugIndividualMoves = TRUE to debug each individual move.
      */
-    public static boolean debugBot1 = true;
-    public static boolean debugBot2 = false;
+    public static boolean debugKrisBot = true;
     public static boolean debugIndividualMoves = false;
 
     /**
@@ -20,7 +18,7 @@ public class ConnectFourGameDriver {
     public static final ConnectFourBot PLAYER2 = new RandomBot();
 
     public static void main (String [] args) {
-        playMultipleGames(PLAYER1, PLAYER2, 20);
+        playMultipleGames(PLAYER1, PLAYER2, 113);
     }
 
 
@@ -46,8 +44,8 @@ public class ConnectFourGameDriver {
                 numberOfDraws++;
             }
         }
-        System.out.println("\n Number of Bot1 Wins: " + numberOfBot1Wins + ", " + (numberOfBot1Wins/numberOfTimes) + "%");
-        System.out.println("\n Number of Bot2 Wins: " + numberOfBot2Wins + ", " + (numberOfBot2Wins/numberOfTimes) + "%");
+        System.out.println("\n Number of Bot1 (" + bot1.getClass().getName() + ") Wins: " + numberOfBot1Wins + ", " + (numberOfBot1Wins/numberOfTimes) + "%");
+        System.out.println("\n Number of Bot2 (" + bot2.getClass().getName() +  ") Wins: " + numberOfBot2Wins + ", " + (numberOfBot2Wins/numberOfTimes) + "%");
         System.out.println("\n Number of Draws: " + numberOfDraws + ", " + (numberOfDraws/numberOfTimes) + "%");
     }
 
@@ -67,26 +65,25 @@ public class ConnectFourGameDriver {
     public static ConnectFourBot playSingleGame(ConnectFourBot bot1, ConnectFourBot bot2) {
         ConnectFourBoard connectFourBoard = new ConnectFourBoard();
 
-        int movesMade = 0;
-        while (connectFourBoard.getWinner() == null && movesMade < ConnectFourBoard.TOTAL_MOVES) {
+        while (connectFourBoard.getWinner() == null && connectFourBoard.getMovesMade() < ConnectFourBoard.TOTAL_MOVES) {
             ConnectFourPiece winner = connectFourBoard.getWinner();
             if (winner != null) {
                 if (winner == ConnectFourPiece.BLACK) {
-                    if (debugBot2) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot2 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot1;
                 }
                 if (winner == ConnectFourPiece.RED) {
-                    if (debugBot1) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot1 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot2;
                 }
             }
 
             if (debugIndividualMoves) {
-                System.out.println("Current state of move: " + connectFourBoard.toString());
+                System.out.println("Current state of move: " + connectFourBoard);
             }
 
             int bot1DesiredMove = -1;
@@ -94,23 +91,23 @@ public class ConnectFourGameDriver {
                 bot1DesiredMove = bot1.makeMove(connectFourBoard, ConnectFourPiece.BLACK);
                 connectFourBoard.applyMove(bot1DesiredMove, ConnectFourPiece.BLACK);
                 if (debugIndividualMoves) {
-                    System.out.println("After bot1 move: " + bot1DesiredMove + connectFourBoard.toString());
+                    System.out.println("After bot1 move: " + bot1DesiredMove + connectFourBoard);
                 }
             } catch (Exception e) {
-                System.out.println("Invalid move by bot1: " + bot1DesiredMove + ". Skipping to bot2");
+                System.out.println("Invalid move by " + bot1.getClass().getName() + " bot1: " + bot1DesiredMove + ". Skipping to bot2");
             }
-            movesMade++;
+
             winner = connectFourBoard.getWinner();
             if (winner != null) {
                 if (winner == ConnectFourPiece.BLACK) {
-                    if (debugBot2) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot2 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot1;
                 }
                 if (winner == ConnectFourPiece.RED) {
-                    if (debugBot1) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot1 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot2;
                 }
@@ -122,24 +119,23 @@ public class ConnectFourGameDriver {
                 bot2DesiredMove = bot1.makeMove(connectFourBoard, ConnectFourPiece.RED);
                 connectFourBoard.applyMove(bot2DesiredMove, ConnectFourPiece.RED);
                 if (debugIndividualMoves) {
-                    System.out.println("After bot1 move: " + bot1DesiredMove + connectFourBoard.toString());
+                    System.out.println("After bot1 move: " + bot1DesiredMove + connectFourBoard);
                 }
             } catch (Exception e) {
-                System.out.println("Invalid move by bot2: " + bot2DesiredMove + ". Skipping to bot1");
+                System.out.println("Invalid move by " + bot2.getClass().getName() + " bot2: " + bot2DesiredMove + ". Skipping to bot1");
             }
-            movesMade++;
 
             winner = connectFourBoard.getWinner();
             if (winner != null) {
                 if (winner == ConnectFourPiece.BLACK) {
-                    if (debugBot2) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot2 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot1;
                 }
                 if (winner == ConnectFourPiece.RED) {
-                    if (debugBot1) {
-                        System.out.println(connectFourBoard.toString());
+                    if (bot1 instanceof KrisBot && debugKrisBot) {
+                        System.out.println(connectFourBoard);
                     }
                     return bot2;
                 }

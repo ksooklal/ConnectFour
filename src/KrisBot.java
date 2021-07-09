@@ -19,34 +19,116 @@ public class KrisBot implements ConnectFourBot {
         int desiredMove = connectFourBoard.getAllValidMoves().get(0);
 
         // Rule #1: Win Game
-        Integer possibleMove = checkForWinningPosition(connectFourBoard, myColor);
-        if (possibleMove != null && connectFourBoard.validateMove(possibleMove)) {
-            return possibleMove;
+        Integer possibleWin = checkForWinningPosition(connectFourBoard, myColor);
+        if (possibleWin != null && connectFourBoard.validateMove(possibleWin)) {
+            return possibleWin;
         }
 
         // Rule #2: Block Win of Game
-
-        // Rule #7: Take Middle
-        if (connectFourBoard.validateMove(3)) {
-            return 3;
+        Integer possibleBlockWin = checkForWinningPosition(connectFourBoard, opponentColor);
+        if (possibleBlockWin != null && connectFourBoard.validateMove(possibleBlockWin)) {
+            return possibleBlockWin;
         }
 
-        // Use the default when there is no further logic to be made.
-        return ConnectFourBot.super.makeMove(connectFourBoard, playerColor);
+        // Rule #7: Take Middle
+        if (connectFourBoard.getAllValidMoves().contains(3)) {
+            return 3;
+        }
+        if (connectFourBoard.getAllValidMoves().contains(4)) {
+            return 4;
+        }
+        if (connectFourBoard.getAllValidMoves().contains(2)) {
+            return 2;
+        }
+        if (connectFourBoard.getAllValidMoves().contains(1)) {
+            return 1;
+        }
+        if (connectFourBoard.getAllValidMoves().contains(5)) {
+            return 5;
+        }
+        if (connectFourBoard.getAllValidMoves().contains(0)) {
+            return 0;
+        }
+        return desiredMove;
     }
 
     private Integer checkForWinningPosition(ConnectFourBoard connectFourBoard, ConnectFourPiece piece) {
         ArrayList<Integer> validMoves = connectFourBoard.getAllValidMoves();
-        Integer verticalWin = validMoves.contains(3) ? 3 : validMoves.get(0); //checkForWinningVerticalWin();
-        if (verticalWin != null) {
+        Integer verticalWin = checkForWinningVerticalWin(connectFourBoard.getBoard(), piece);
+        if (verticalWin != null && validMoves.contains(verticalWin)) {
             return verticalWin;
         }
-        Integer horizontalWin = validMoves.size() >= 2 ? validMoves.get(1) : null;//checkForWinningHorizontalWin();
-        if (horizontalWin != null) {
+        Integer horizontalWin = checkForWinningHorizontalWin(connectFourBoard.getBoard(), piece);
+        if (horizontalWin != null && validMoves.contains(horizontalWin)) {
             return horizontalWin;
         }
-        Integer diagonalWin = validMoves.size() >= 3 ? validMoves.get(2) : null;//checkForWinningDiagonalWin();
-        return diagonalWin;
+
+        //Integer diagonalWin = //checkForWinningDiagonalWin();
+        return validMoves.contains(3) ? 3 : null;
+    }
+
+    private Integer checkForWinningHorizontalWin(ConnectFourPiece [][] board, ConnectFourPiece piece) {
+        Integer winningPosition = null;
+        for (int row = ConnectFourBoard.ROWS - 1; row >= 0; row--) {
+            winningPosition = checkIndividualRowForHorizontalWin(board, row, piece);
+            if (winningPosition != null) {
+                return winningPosition;
+            }
+        }
+        return winningPosition;
+    }
+
+    private Integer checkIndividualRowForHorizontalWin(ConnectFourPiece [][] board, int currentRow, ConnectFourPiece piece) {
+        int consecutiveMatches = 0;
+        for (int position = 0; position < ConnectFourBoard.COLUMNS; position++) {
+            if (board[currentRow][position] == piece) {
+                consecutiveMatches++;
+            } else {
+                consecutiveMatches = 0;
+            }
+            if (consecutiveMatches == 3) {
+                if (position < (ConnectFourBoard.COLUMNS - 1)) {
+                    Integer highestPositionInAdjacentPosition = getHighestEmptySpotInColumn(board, position + 1);
+                    if (highestPositionInAdjacentPosition != null && highestPositionInAdjacentPosition == currentRow) {
+                        return position + 1;
+                    }
+                }
+                if (position >= 3) {
+                    Integer highestPositionInAdjacentPosition = getHighestEmptySpotInColumn(board, position - 3);
+                    if (highestPositionInAdjacentPosition != null && highestPositionInAdjacentPosition == currentRow) {
+                        return position - 3;
+                    }
+                }
+                consecutiveMatches = 0;
+            }
+        }
+        return null;
+    }
+
+    private Integer getHighestEmptySpotInColumn(ConnectFourPiece [][] board, int desiredMove) {
+        for (int row = ConnectFourBoard.ROWS - 1; row >= 0; row--) {
+            if (board[row][desiredMove] == null) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private Integer checkForWinningVerticalWin(ConnectFourPiece [][] board, ConnectFourPiece piece) {
+        for (int column = 0; column < ConnectFourBoard.COLUMNS; column++) {
+            int consecutiveMatchingPieces = 0;
+            for (int position = ConnectFourBoard.ROWS - 1; position >= 1; position--) {
+                if (board[position][column] == piece) {
+                    consecutiveMatchingPieces++;
+                } else {
+                    consecutiveMatchingPieces = 0;
+                }
+                if (consecutiveMatchingPieces == 3 && board[position - 1][column] == null) {
+                    return column;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

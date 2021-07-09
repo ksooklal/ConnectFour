@@ -31,14 +31,24 @@ public class ConnectFourBoard {
     public static final int COLUMNS = 7;
     public static final int ROWS = 6;
     public static final int TOTAL_MOVES = COLUMNS * ROWS;
+    private int movesMade = 0;
 
     private final ConnectFourPiece [][] board = new ConnectFourPiece[ROWS][COLUMNS];
 
+    /**
+     * @return returns a perfect copy of the internal board but *NOT* the actual internal board
+     */
     public ConnectFourPiece[][] getBoard() {
-        return board;
+        ConnectFourPiece [][] copyBoard = new ConnectFourPiece[ROWS][COLUMNS];
+        for(int row = 0; row < ROWS; row++) {
+            for (int column = 0; column < COLUMNS; column++) {
+                copyBoard[row][column] = board[row][column];
+            }
+        }
+        return copyBoard;
     }
 
-    public boolean applyMove(int desiredMove, ConnectFourPiece connectFourPiece) {
+    public int applyMove(int desiredMove, ConnectFourPiece connectFourPiece) {
         if (!validateMove(desiredMove)) {
             throw new ArrayIndexOutOfBoundsException("The desired move: " + desiredMove + " is invalid for the board: " + this.toString()
                     + "\nSkipping to the next player's turn");
@@ -46,14 +56,18 @@ public class ConnectFourBoard {
         try {
             int nextAvailableRowForDesiredMove = getHighestEmptySpotInColumn(desiredMove);
             this.board[nextAvailableRowForDesiredMove][desiredMove] = connectFourPiece;
-            return true;
+            return movesMade++;
         } catch (Exception e) {
             throw e;
         }
     }
 
+    public int getMovesMade() {
+        return movesMade;
+    }
+
     private int getHighestEmptySpotInColumn(int desiredMove) {
-        for (int row = 5; row >= 0; row--) {
+        for (int row = ROWS - 1; row >= 0; row--) {
             if (this.board[row][desiredMove] == null) {
                 return row;
             }
@@ -83,19 +97,16 @@ public class ConnectFourBoard {
         ConnectFourPiece [][] board = connectFourBoard.board;
         validateBoardIsDefinedCorrectly(board);
 
-        ConnectFourPiece winner = null;
-        for (int row = ROWS - 1; row >= 0; row--) {
-            winner = checkRowForHorizontalWinner(board[row]);
-            if (winner != null) {
-                return winner;
-            }
+        ConnectFourPiece winner = checkForHorizontalWinner(board);
+        if (winner != null) {
+            return winner;
         }
-        for (int column = 0; column < COLUMNS; column++) {
-            //TODO checkColumnForVerticalWinners(board, column);
-            if (winner != null) {
-                return winner;
-            }
+
+        winner = checkForVerticalWinner(board);
+        if (winner != null) {
+            return winner;
         }
+
         for (int middlePosition = 0; middlePosition < (COLUMNS - 4); middlePosition++) {
             //TODO checkForUpwardsDiagonals(board, middlePosition);
             if (winner != null) {
@@ -111,61 +122,60 @@ public class ConnectFourBoard {
         return winner;
     }
 
-    private ConnectFourPiece checkRowForHorizontalWinner(ConnectFourPiece [] row) {
-        int countRed = 0;
-        int countBlack = 0;
-        int countEmpty = 0;
+    private ConnectFourPiece checkForVerticalWinner(ConnectFourPiece [][] board) {
+        for (int column = 0; column < ConnectFourBoard.COLUMNS; column++) {
+            int consecutiveRed = 0;
+            int consecutiveBlack = 0;
 
-        /*
-         * This block of code is a "quick-check" to simply count all of the pieces in a row. If there are less than
-         * four of each color, then there is no winner for sure. If there are four empty slots, then there is no winner
-         * for sure.
-         */
-        for (int i = 0; i < COLUMNS; i++) {
-            if (row[i] == ConnectFourPiece.BLACK) {
-                countBlack++;
-            } else if (row[i] == ConnectFourPiece.RED) {
-                countRed++;
-            } else if (row[i] == null) {
-                countEmpty++;
-            }
-            if (countEmpty >= 4) {
-                return null;
+            for (int position = ConnectFourBoard.ROWS - 1; position >= 1; position --) {
+                if (board[position][column] == ConnectFourPiece.BLACK) {
+                    consecutiveBlack++;
+                    consecutiveRed = 0;
+                    if (consecutiveBlack >= 4) {
+                        return ConnectFourPiece.BLACK;
+                    }
+                } else if (board[position][column] == ConnectFourPiece.RED) {
+                    consecutiveRed++;
+                    consecutiveBlack = 0;
+                    if (consecutiveRed >= 4) {
+                        return ConnectFourPiece.RED;
+                    }
+                } else {
+                    consecutiveRed = 0;
+                    consecutiveBlack = 0;
+                }
             }
         }
-
-        if (countBlack >= 4) {
-            ConnectFourPiece winner = countConsecutivePiecesInARow(row, ConnectFourPiece.BLACK);
-            if (winner != null) {
-                return winner;
-            } else {
-                System.out.println("Not enough pieces in row: " + toString(row) + " to declare BLACK as the horizontal winner");
-            }
-        }
-        if (countRed >= 4) {
-            ConnectFourPiece winner = countConsecutivePiecesInARow(row, ConnectFourPiece.RED);
-            if (winner != null) {
-                return winner;
-            } else {
-                System.out.println("Not enough pieces in row: " + toString(row) + " to declare RED as the horizontal winner");
-            }
-        }
-
         return null;
     }
 
-    private ConnectFourPiece countConsecutivePiecesInARow(ConnectFourPiece [] row, ConnectFourPiece color) {
-        int consecutiveMatches = 0;
-        for (int i = 0; i < COLUMNS; i++) {
-            if (row[i] == color) {
-                consecutiveMatches++;
-                if (consecutiveMatches >= 4) {
-                    return color;
+    private ConnectFourPiece checkForHorizontalWinner(ConnectFourPiece [][] board) {
+        for (int row = 0; row < ROWS; row++) {
+            int consecutiveBlack = 0;
+            int consecutiveRed = 0;
+
+            for (int position = 0; position < COLUMNS; position++) {
+                if (board[row][position] == ConnectFourPiece.BLACK) {
+                    consecutiveBlack++;
+                    consecutiveRed = 0;
+
+                    if (consecutiveBlack >= 4) {
+                        return ConnectFourPiece.BLACK;
+                    }
+                } else if (board[row][position] == ConnectFourPiece.RED) {
+                    consecutiveRed++;
+                    consecutiveBlack = 0;
+
+                    if (consecutiveRed >= 4) {
+                        return ConnectFourPiece.RED;
+                    }
+                } else {
+                    consecutiveBlack = 0;
+                    consecutiveRed = 0;
                 }
-            } else {
-                consecutiveMatches = 0;
             }
         }
+
         return null;
     }
 
@@ -251,17 +261,7 @@ public class ConnectFourBoard {
         String bottomOfBoard = "__________________________";
         String board = "";
         for (int i = 0; i < ROWS; i++) {
-            String row = "| ";
-            for (int j = 0; j < COLUMNS; j++) {
-                String piece = " - ";
-                if (this.board[i][j] == ConnectFourPiece.BLACK) {
-                    piece = " B ";
-                }
-                if (this.board[i][j] == ConnectFourPiece.RED) {
-                    piece = " R ";
-                }
-                row += (" " + piece + " |");
-            }
+            String row = toString(this.board[i]);
             board += (row + "\n");
         }
         ConnectFourPiece winner = getWinnerForAnyGivenBoard(this);
